@@ -56,7 +56,7 @@ function setup() {
   y2 = height;
   powerReloder=width/5;
   // --- Socket Connection:
-  socket = io('http://127.0.0.1:3000'); // ip address of the server could be localhost or 127.0.0.0
+  socket = io(); // ip address of the server could be localhost or 127.0.0.0
    // callback function gets the data id of the other players
 	socket.on('mouse', getOpponentData); // callback function gets the data from the other players.
 
