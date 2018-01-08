@@ -247,7 +247,7 @@
       distanceFromImpact = Math.abs((x - 10) - mouseX);
     }
 
-    addStars();
+    addStars(stars);
     refreshPower(); // Refreshes the super power.
     sendData(); // Send's data to server (soket.io).
     drawOpponent(); // Draws opponent's data to the canvas.
@@ -515,7 +515,7 @@
     whoImPlayingWith = dataAccepted.whoAmI;
   }
 
-  function addStars() {
+  function addStars(stars) {
     // this function adds stars which will give points if a player gets them.
     if (frameCount % 6000) {
       stars.push(new Star(random(width), random(height)));
