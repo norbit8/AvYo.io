@@ -1,7 +1,7 @@
 class Star {
   constructor(wd, he) {
-    this.w = w;
-    this.h = h;
+    this.w = wd;
+    this.h = he;
     this.duration = 10;
   }
 
