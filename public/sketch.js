@@ -528,7 +528,7 @@
     }
     for (let i = stars.length - 1; i >= 0; i--) {
       if (stars[i].duration <= 0) {
-        starts.splice(i, 1);
+        stars.splice(i, 1);
       }
     }
 
