@@ -518,7 +518,7 @@
   function addStars() {
     // this function adds stars which will give points if a player gets them.
     if (frameCount % 6000) {
-      stars.push(new Star(random(width), random(height)));
+      stars.push(new Star(random(10,width-10), random(10,height-10)));
     }
     for (let i = stars.length - 1; i >= 0; i--) {
       stars[i].show();
