@@ -522,9 +522,9 @@
     }
     for (let i = stars.length - 1; i >= 0; i--) {
       stars[i].show();
-      if (frameCount % 60 == 0) {
-        stars[i].duration--;
-      }
+    //  if (frameCount % 60 == 0) {
+    //    stars[i].duration--;
+    //  }
     }
     for (let i = stars.length - 1; i >= 0; i--) {
       if (stars[i].duration <= 0) {
