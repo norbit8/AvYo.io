@@ -515,7 +515,7 @@
     whoImPlayingWith = dataAccepted.whoAmI;
   }
 
-  function addStars(stars) {
+  function addStars() {
     // this function adds stars which will give points if a player gets them.
     if (frameCount % 6000) {
       stars.push(new Star(random(width), random(height)));
