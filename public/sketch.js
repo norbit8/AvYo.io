@@ -40,7 +40,7 @@
   var whoImPlayingWith;
   var dataAccepted;
   var started = false;
-
+  var stars = [];
 
   function setup() {
     windowView = 1;
@@ -170,7 +170,7 @@
 
   // ---- GAME -----
   function game() {
-    let stars = [];
+
 
     if (timer <= 0) { // when it end's
       windowView = 3;
@@ -247,7 +247,7 @@
       distanceFromImpact = Math.abs((x - 10) - mouseX);
     }
 
-    addStars(stars);
+    addStars();
     refreshPower(); // Refreshes the super power.
     sendData(); // Send's data to server (soket.io).
     drawOpponent(); // Draws opponent's data to the canvas.
