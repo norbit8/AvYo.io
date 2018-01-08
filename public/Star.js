@@ -1,4 +1,4 @@
-class Star() {
+class Star {
   constructor(wd, he) {
     this.w = w;
     this.h = h;
