@@ -41,8 +41,17 @@
   var dataAccepted;
   var started = false;
   var stars = [];
+  let himY;
+  let himX;
+  var gotIt;
+  var durationStar = 3;
+  var alpah = 255;
+  var newStars = [];
+  var me;
+  var v2;
 
   function setup() {
+    v2 = createVector(0, 0);
     windowView = 1;
     canvas = createCanvas(940, 940);
     canvas.id("myCanvas");
@@ -56,7 +65,7 @@
     y2 = height;
     powerReloder = width / 5;
     // --- Socket Connection:
-    socket = io(); // ip address of the server could be localhost or 127.0.0.0
+    socket = io('http://127.0.0.1:3000'); // ip address of the server could be localhost or 127.0.0.0
     // callback function gets the data id of the other players
     socket.on('mouse', getOpponentData); // callback function gets the data from the other players.
 
@@ -129,13 +138,13 @@
   }
 
   function first() {
-    points = 100;
+
 
     if (frameCount % 120 == 0) {
       socket.on('getClients', clientsCount);
       socket.emit('idle');
     }
-    sendData();
+    //  sendData();
     background(125, 65, 244);
     makeItRain(); //MAKE IT RAIN -- its here becuase it makes it behinde the button
     noStroke();
@@ -171,6 +180,7 @@
   // ---- GAME -----
   function game() {
 
+    me = createVector(mouseX, mouseY);
 
     if (timer <= 0) { // when it end's
       windowView = 3;
@@ -247,11 +257,16 @@
       distanceFromImpact = Math.abs((x - 10) - mouseX);
     }
 
-    addStars();
+
     refreshPower(); // Refreshes the super power.
     sendData(); // Send's data to server (soket.io).
     drawOpponent(); // Draws opponent's data to the canvas.
     checkBoarders(); // Check if player hit the boarder and takes action -->die();
+    if (gotIt) {
+      gotItf();
+    }
+    addStars();
+
   }
 
 
@@ -320,7 +335,8 @@
       superPower: Activated,
       score: points,
       id: socket.id,
-      to: whoImPlayingWith
+      to: whoImPlayingWith,
+      stars: stars
     };
 
     socket.emit('mouse', data2); // Send data (goodbye).
@@ -336,7 +352,8 @@
     player2[4] = data.superPower; // oppenent's superPower (atctivated or not)
     player2[5] = data.score; // opponent's score
     player2[6] = data.id; // opponent's score
-    player2[6] = data.to; // opponnt's id
+    player2[7] = data.to; // opponnt's id
+    player2[8] = data.stars; // stars
   }
 
   function drawOpponent() {
@@ -504,6 +521,7 @@
     }
     if (mouseIsPressed == true && mouseX > (width / 1.45) + 225 && mouseX < (width / 1.45) + 225 + 20 && mouseY > 30 && mouseY < 50) {
       startGameWith();
+      points = 100;
     }
   }
 
@@ -516,20 +534,75 @@
   }
 
   function addStars() {
+
     // this function adds stars which will give points if a player gets them.
-    if (frameCount % 6000) {
-      stars.push(new Star(random(10,width-10), random(10,height-10)));
+
+    // this function adds stars which will give points if a player gets them.
+    if (frameCount % 300 == 0) {
+      stars.push(new Star(random(50, width - 100), random(50, height - 100)));
     }
+
     for (let i = stars.length - 1; i >= 0; i--) {
+      /*    if ((me.sub(stars[i].v)).dist(v2) <= (ewidth / 2) + 24.5) { // got it
+        points += 10;
+        himX = stars[i].w;
+        himY = stars[i].h;
+        gotIt = true;
+        stars.splice(i, 1);
+        break;
+      }
+*/
+
+      if (frameCount % 60 == 0) {
+        stars[i].duration--;
+      }
       stars[i].show();
-    //  if (frameCount % 60 == 0) {
-    //    stars[i].duration--;
-    //  }
     }
+
+    if (player2[8].length != 0) {
+        player2[8][0].show();
+    }
+
+    if (stars.length > 0) {
+      newStars = stars.filter(isTouch);
+      stars = newStars;
+    }
+
     for (let i = stars.length - 1; i >= 0; i--) {
       if (stars[i].duration <= 0) {
         stars.splice(i, 1);
       }
+    }
+
+  }
+
+  function gotItf() {
+    push();
+    himY -= 0.5;
+    if (frameCount % 60 == 0) {
+      durationStar--;
+      console.log(himX + ", " + himY);
+    }
+    textSize(18);
+    fill(66, 160, 255, alpah);
+    text("+10!", himX, himY);
+    if (durationStar == 0) {
+      gotIt = false;
+      durationStar = 3;
+      alpah = 255;
+    }
+    alpah -= 1;
+    pop();
+  }
+
+  function isTouch(star) {
+    if ((me.sub((star.v))).dist(v2) >= (ewidth / 2) + 24.5) {
+      return star;
+    } else {
+      points += 10;
+      himX = star.w;
+      himY = star.h;
+      gotIt = true;
     }
 
   }
