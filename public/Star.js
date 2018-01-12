@@ -8,7 +8,7 @@ class Star {
   }
 
   show() {
-    this.ran = random(3, -3);
+    this.ran = random(1, -1);
     this.w += this.ran;
     this.h += this.ran;
     this.v = createVector(this.w, this.h);

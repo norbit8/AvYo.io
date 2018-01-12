@@ -50,5 +50,9 @@ function newConnection(socket) {
     socket.to(dataAccepted.whoIWant).emit('isAccepeted', dataAccepted);
   });
 
+  socket.on('star', (dataReceived) => {
+    console.log(dataReceived)
+    socket.to(dataReceived.who).emit('star2', dataReceived.star);
+  });
 
 }

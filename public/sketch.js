@@ -49,6 +49,8 @@
   var newStars = [];
   var me;
   var v2;
+  var starToSend;
+  let countStarsSent = 0;
 
   function setup() {
     v2 = createVector(0, 0);
@@ -179,7 +181,6 @@
 
   // ---- GAME -----
   function game() {
-
     me = createVector(mouseX, mouseY);
 
     if (timer <= 0) { // when it end's
@@ -257,7 +258,7 @@
       distanceFromImpact = Math.abs((x - 10) - mouseX);
     }
 
-
+    addStars();
     refreshPower(); // Refreshes the super power.
     sendData(); // Send's data to server (soket.io).
     drawOpponent(); // Draws opponent's data to the canvas.
@@ -265,7 +266,7 @@
     if (gotIt) {
       gotItf();
     }
-    addStars();
+
 
   }
 
@@ -336,7 +337,7 @@
       score: points,
       id: socket.id,
       to: whoImPlayingWith,
-      stars: stars
+      stars2: starToSend
     };
 
     socket.emit('mouse', data2); // Send data (goodbye).
@@ -351,9 +352,9 @@
     player2[3] = data.playerheight; // opponent's height
     player2[4] = data.superPower; // oppenent's superPower (atctivated or not)
     player2[5] = data.score; // opponent's score
-    player2[6] = data.id; // opponent's score
-    player2[7] = data.to; // opponnt's id
-    player2[8] = data.stars; // stars
+    player2[6] = data.id; // opponent's is
+    player2[7] = data.to; //
+    player2[8] = data.stars2; // stars
   }
 
   function drawOpponent() {
@@ -403,7 +404,7 @@
 
   function makeItRain() {
     // White rain :)
-    if (frameCount % 3 == 0) {
+    if (frameCount % 20 == 0) {
       rain.push(new Rain(random(1, width), -10));
       rain.push(new Rain(-50, random(1, width)));
     }
@@ -534,33 +535,28 @@
   }
 
   function addStars() {
-
     // this function adds stars which will give points if a player gets them.
-
-    // this function adds stars which will give points if a player gets them.
-    if (frameCount % 300 == 0) {
+    if (frameCount % 600 == 0) {
       stars.push(new Star(random(50, width - 100), random(50, height - 100)));
+      starToSend = {
+        who: player2[6],
+        star: {
+          starNumber: countStarsSent,
+          w: stars[stars.length - 1].w,
+          h: stars[stars.length - 1].h
+        }
+      };
+      socket.emit('star', starToSend);
+      countStarsSent++;
     }
 
-    for (let i = stars.length - 1; i >= 0; i--) {
-      /*    if ((me.sub(stars[i].v)).dist(v2) <= (ewidth / 2) + 24.5) { // got it
-        points += 10;
-        himX = stars[i].w;
-        himY = stars[i].h;
-        gotIt = true;
-        stars.splice(i, 1);
-        break;
-      }
-*/
+    socket.on('star2', pushTheStar); // the othr player's star
 
+    for (let i = stars.length - 1; i >= 0; i--) {
       if (frameCount % 60 == 0) {
         stars[i].duration--;
       }
       stars[i].show();
-    }
-
-    if (player2[8].length != 0) {
-        player2[8][0].show();
     }
 
     if (stars.length > 0) {
@@ -604,5 +600,10 @@
       himY = star.h;
       gotIt = true;
     }
-
   }
+
+    function pushTheStar(star2){
+      if(stars.length < 2){
+      stars.push(new Star(star2.w, star2.h));
+    }
+    }
