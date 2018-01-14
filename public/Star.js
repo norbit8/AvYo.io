@@ -1,13 +1,16 @@
 class Star {
-  constructor(wd, he) {
+  constructor(wd, he, id, gotMe) {
     this.w = wd;
     this.h = he;
     this.duration = 11;
     this.ran = 0;
     this.v = createVector(this.h, this.w);
+    this.id = id;
+    this.gotMe = gotMe;
   }
 
   show() {
+    if(this.gotMe == false){
     this.ran = random(1, -1);
     this.w += this.ran;
     this.h += this.ran;
@@ -20,4 +23,5 @@ class Star {
       ellipse(this.w, this.h, 49, 49);
     }
   }
+}
 }

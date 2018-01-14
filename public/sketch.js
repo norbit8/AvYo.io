@@ -49,8 +49,10 @@
   var newStars = [];
   var me;
   var v2;
-  var starToSend;
+  let starToSend;
   let countStarsSent = 0;
+  var star;
+  var whatsTheTime = -1;
 
   function setup() {
     v2 = createVector(0, 0);
@@ -67,14 +69,12 @@
     y2 = height;
     powerReloder = width / 5;
     // --- Socket Connection:
-    socket = io('http://127.0.0.1:3000'); // ip address of the server could be localhost or 127.0.0.0
+    //socket = io('http://127.0.0.1:3000'); // ip address of the server could be localhost or 127.0.0.0
+    socket = io();
     // callback function gets the data id of the other players
     socket.on('mouse', getOpponentData); // callback function gets the data from the other players.
 
     //frameRate = 80;
-
-
-
   }
 
   function draw(data) {
@@ -94,7 +94,7 @@
   // --------------------------- END OF DRAW FUNCTION ----------------------------
 
   function result() {
-
+    timer = 0;
     let table = document.getElementById("table1");
     table.style.visibility = "hidden";
     background(125, 65, 244);
@@ -181,6 +181,7 @@
 
   // ---- GAME -----
   function game() {
+
     me = createVector(mouseX, mouseY);
 
     if (timer <= 0) { // when it end's
@@ -258,7 +259,11 @@
       distanceFromImpact = Math.abs((x - 10) - mouseX);
     }
 
-    addStars();
+    if (timer % 10 == 0 && whatsTheTime != timer) {
+      addStars();
+      whatsTheTime = timer;
+    }
+
     refreshPower(); // Refreshes the super power.
     sendData(); // Send's data to server (soket.io).
     drawOpponent(); // Draws opponent's data to the canvas.
@@ -266,6 +271,7 @@
     if (gotIt) {
       gotItf();
     }
+    showStar();
 
 
   }
@@ -503,12 +509,20 @@
   }
 
   function startGameWith() {
-    console.log("gameOn");
+    let starsArray = [];
+    let starNum = 0;
+    while (starsArray.length != 18) {
+      starsArray.push([random(50, 940 - 100), random(50, 940 - 100), starNum]);
+      starNum++;
+    }
+
+    stars = starsArray.map((wannaBeAStar) => new Star(Math.floor(wannaBeAStar[0]), Math.floor(wannaBeAStar[1]), wannaBeAStar[2], false));
     windowView = 2;
     whoImPlayingWith = invitedBy;
     socket.emit('accepted', {
       whoAmI: socket.id,
-      whoIWant: whoImPlayingWith
+      whoIWant: whoImPlayingWith,
+      stars: starsArray
     });
     timer = 180;
     invited = false;
@@ -521,63 +535,82 @@
       cancelInvite();
     }
     if (mouseIsPressed == true && mouseX > (width / 1.45) + 225 && mouseX < (width / 1.45) + 225 + 20 && mouseY > 30 && mouseY < 50) {
-      startGameWith();
+      setTimeout(startGameWith, 80);
       points = 100;
     }
   }
 
   function startGameWithSomeoneYouInvited(dataAccepted) {
+    let passStars = [];
     windowView = 2;
     timer = 180;
     startTimer();
     invited = false;
     whoImPlayingWith = dataAccepted.whoAmI;
+    passStars = dataAccepted.stars;
+    stars = passStars.map((wannaBeAStar) => new Star(Math.floor(wannaBeAStar[0]), Math.floor(wannaBeAStar[1]), wannaBeAStar[2], false));
+  }
+
+  function showStar(){
+    if (typeof(star) != "undefined") {
+      star.show();
+      if (frameCount % 60 == 0) { // every second we sub the duration by 1
+        star.duration--;
+      }
+      if (star.duration <= 0) { // then we check if the duration if the star is 0 we remove him.
+        star = undefined;
+      }
+      isTouch(star);
+    }
+    socket.on('star2', (starNum) => {
+      console.log(starNum);
+      if(starNum == star.id){
+        star.gotMe = true;
+      }
+    });
   }
 
   function addStars() {
     // this function adds stars which will give points if a player gets them.
-    if (frameCount % 600 == 0) {
-      stars.push(new Star(random(50, width - 100), random(50, height - 100)));
-      starToSend = {
-        who: player2[6],
-        star: {
-          starNumber: countStarsSent,
-          w: stars[stars.length - 1].w,
-          h: stars[stars.length - 1].h
+    if (stars.length >= 1) {
+      star = stars[0];
+      stars.shift();
+    }
+    }
+
+
+    /*
+        if (frameCount % 600 == 0) { // first we ask the server for a star
+          socket.emit('star', player2[6]);
+          if (typeof(sharedStar) != "undefined") {
+            sharedStar.gotMe = false;
+          }
         }
-      };
-      socket.emit('star', starToSend);
-      countStarsSent++;
-    }
 
-    socket.on('star2', pushTheStar); // the othr player's star
+        if (frameCount % 30 == 0) {
+          socket.on('star2', pushTheStar); // then waiting for the server to response with a star!
+        }
 
-    for (let i = stars.length - 1; i >= 0; i--) {
-      if (frameCount % 60 == 0) {
-        stars[i].duration--;
-      }
-      stars[i].show();
-    }
+        if (typeof(sharedStar) != "undefined") { // if we have a star we show it and configure it
+          sharedStar.show(); // show the star
+          if (frameCount % 60 == 0) { // every second we sub the duration by 1
+            sharedStar.duration--;
+          }
 
-    if (stars.length > 0) {
-      newStars = stars.filter(isTouch);
-      stars = newStars;
-    }
+          if (sharedStar.duration <= 0) { // then we check if the duration if the star is 0 we remove him.
+            sharedStar = undefined;
+          }
+          isTouch(sharedStar); // check if the player touched the star (if so it triggers the gotItf function which will show message to the user and's add 10 points)
+        }
 
-    for (let i = stars.length - 1; i >= 0; i--) {
-      if (stars[i].duration <= 0) {
-        stars.splice(i, 1);
-      }
-    }
+    */
 
-  }
 
   function gotItf() {
     push();
     himY -= 0.5;
     if (frameCount % 60 == 0) {
       durationStar--;
-      console.log(himX + ", " + himY);
     }
     textSize(18);
     fill(66, 160, 255, alpah);
@@ -592,18 +625,25 @@
   }
 
   function isTouch(star) {
-    if ((me.sub((star.v))).dist(v2) >= (ewidth / 2) + 24.5) {
-      return star;
-    } else {
+    if(typeof(star) != "undefined"){
+    if ((me.sub((star.v))).dist(v2) < (ewidth / 2) + 24.5 && typeof(star) != "undefined" && star.gotMe == false) {
       points += 10;
       himX = star.w;
       himY = star.h;
       gotIt = true;
+      star.gotMe = true;
+      socket.emit('star', {
+        whoAmI: socket.id,
+        whoIWant: whoImPlayingWith,
+        starsNumber: star.id
+      });
     }
   }
+  }
 
-    function pushTheStar(star2){
-      if(stars.length < 2){
-      stars.push(new Star(star2.w, star2.h));
+  /*  function pushTheStar(star2) {
+      if (typeof(sharedStar) == "undefined" || sharedStar.id != star2.starId) {
+        sharedStar = new Star(star2.w, star2.h, star2.starId, false);
+      }
     }
-    }
+  */
